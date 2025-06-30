@@ -28,6 +28,6 @@ To access WiFi passwords:
 pkg update && pkg upgrade
 pkg install git -y
 git clone https://github.com/Old-hacker01/Wifi-Hack
-cd premium-Wifi-Hack
+cd Wifi-Hack
 chmod +x wifi-finder.sh
-bah wifi-finder.sh
+bash wifi-finder.sh
