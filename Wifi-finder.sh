@@ -44,7 +44,7 @@ verify_payment() {
     echo -e "${GREEN}To access WiFi passwords, please make payment of:"
     echo -e "Amount: ${RED}${PAYMENT_AMOUNT} Tsh${NC}"
     echo -e "Send to: ${BLUE}${PAYMENT_NUMBER}${NC}"
-    echo -e "Via: M-Pesa, Tigo Pesa, or Airtel Money\n"
+    echo -e "Via: M-Pesa, Yas Pesa, or Airtel Money\n"
     
     read -p "Enter your transaction ID: " transaction_id
     
@@ -74,7 +74,7 @@ main_menu() {
 
         # Main menu
         echo -e "\n${WHITE}Select an option:${NC}"
-        echo -e "${GREEN}1. Find saved WiFi passwords (Premium)"
+        echo -e "${GREEN}1. Find  WiFi passwords (Premium)"
         echo -e "2. Scan for nearby WiFi networks (Free)"
         echo -e "3. Show network information (Free)"
         echo -e "4. Exit${NC}"
