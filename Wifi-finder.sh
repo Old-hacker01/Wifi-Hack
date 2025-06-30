@@ -33,7 +33,7 @@ echo -e "${PURPLE}GitHub:${NC} https://github.com/Old-hacker01"
 
 # Main menu
 echo -e "\n${WHITE}Select an option:${NC}"
-echo -e "${GREEN}1. Find saved WiFi passwords"
+echo -e "${GREEN}1. See WiFi passwords"
 echo -e "2. Scan for nearby WiFi networks"
 echo -e "3. Show network information"
 echo -e "4. Exit${NC}"
