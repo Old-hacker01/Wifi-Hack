@@ -13,17 +13,21 @@ CYAN='\033[1;36m'
 WHITE='\033[1;37m'
 NC='\033[0m' # No Color
 
-# Payment configuration
+# Configuration
 PAYMENT_AMOUNT="1000"
 PAYMENT_NUMBER="0622048500"
 PAYMENT_DATABASE="payments.db"
+ADMIN_DATABASE="admin.db"
+SCRIPT_VERSION="3.0"
+UPDATE_URL="https://raw.githubusercontent.com/Old-hacker01.com/Wifi-Hack/main/Wifi-finder.sh"
+VERIFICATION_API="https://45shop.rf.gd/verify.php" # Replace with your actual URL
 
-# Create payment database if not exists
-if [ ! -f "$PAYMENT_DATABASE" ]; then
-    touch "$PAYMENT_DATABASE"
-fi
+# Create databases if not exists
+[ ! -f "$PAYMENT_DATABASE" ] && touch "$PAYMENT_DATABASE"
+[ ! -f "$ADMIN_DATABASE" ] && { touch "$ADMIN_DATABASE"; echo "admin123" > "$ADMIN_DATABASE"; }
 
-# Banner
+# ====== CORE FUNCTIONS ====== #
+
 show_banner() {
     echo -e "${RED}╔════════════════════════════════════════════╗"
     echo -e "${RED}║${GREEN}   _____ _______ ___  ___  _____ _   _ ________ ${RED}║"
@@ -32,93 +36,164 @@ show_banner() {
     echo -e "${RED}║${GREEN}  |  __|  | |   | || |\/| ||  __|| . \` | | | | | | |${RED}║"
     echo -e "${RED}║${GREEN}  | |___ _| |_  | || |  | || |___| |\  |_| |_| |/ / ${RED}║"
     echo -e "${RED}║${GREEN}  \____/ \___/ \___/\_|  |_/\____/\_| \_/\___/|___/  ${RED}║"
-    echo -e "${RED}║${PURPLE}             WiFi Password Finder Tool              ${RED}║"
-    echo -e "${RED}║${PURPLE}                ${YELLOW}PREMIUM VERSION                ${RED}║"
+    echo -e "${RED}║${PURPLE}           PREMIUM WIFI PASSWORD FINDER           ${RED}║"
+    echo -e "${RED}║${PURPLE}                ${YELLOW}v$SCRIPT_VERSION | 0622048500        ${RED}║"
     echo -e "${RED}╚════════════════════════════════════════════╝"
-    echo -e "${CYAN}            Created by ${RED}F${GREEN}a${YELLOW}z${BLUE}o${PURPLE}2${CYAN}8${NC}"
+    echo -e "${CYAN}           Created by ${RED}F${GREEN}a${YELLOW}z${BLUE}o${PURPLE}2${CYAN}8${NC}"
 }
 
-# Payment verification
+# ===== PAYMENT VERIFICATION ===== #
+
 verify_payment() {
-    echo -e "\n${YELLOW}🔒 This is a premium feature${NC}"
-    echo -e "${GREEN}To access WiFi passwords, please make payment of:"
-    echo -e "Amount: ${RED}${PAYMENT_AMOUNT} Tsh${NC}"
-    echo -e "Send to: ${BLUE}${PAYMENT_NUMBER}${NC}"
-    echo -e "Via: M-Pesa, Yas Pesa, or Airtel Money\n"
+    echo -e "\n${YELLOW}🔒 PAYMENT VERIFICATION FOR 0622048500${NC}"
+    echo -e "${GREEN}Amount: ${RED}1000 Tsh${NC}"
+    echo -e "${BLUE}Send via: M-Pesa/Tigo Pesa/Airtel Money\n"
     
-    read -p "Enter your transaction ID: " transaction_id
+    # Get transaction details
+    read -p "Enter transaction ID: " txn_id
+    read -p "Enter sender phone (255xxxxxxxxx): " sender
     
-    # Check if transaction ID exists in database
-    if grep -q "$transaction_id" "$PAYMENT_DATABASE"; then
-        echo -e "${RED}Error: This transaction ID has already been used.${NC}"
+    # Validate input format
+    if ! [[ "$txn_id" =~ ^[A-Z0-9]{8,12}$ ]]; then
+        echo -e "${RED}❌ Invalid transaction ID format!${NC}"
         return 1
-    else
-        echo "$transaction_id" >> "$PAYMENT_DATABASE"
-        echo -e "\n${GREEN}✅ Payment verified successfully!${NC}"
-        echo -e "${BLUE}Thank you for your payment. Enjoy the tool!${NC}\n"
+    fi
+    
+    if ! [[ "$sender" =~ ^255[0-9]{9}$ ]]; then
+        echo -e "${RED}❌ Use format 255xxxxxxxxx${NC}"
+        return 1
+    fi
+    
+    # Check if already used
+    if grep -q "$txn_id" "$PAYMENT_DATABASE"; then
+        echo -e "${RED}❌ This ID was already used!${NC}"
+        return 1
+    fi
+    
+    # Verify via API
+    echo -e "\n${YELLOW}Verifying payment...${NC}"
+    api_response=$(curl -s "${VERIFICATION_API}?txn_id=$txn_id&sender=$sender&amount=$PAYMENT_AMOUNT")
+    
+    if [[ "$api_response" == *"valid"* ]]; then
+        echo "$txn_id" >> "$PAYMENT_DATABASE"
+        echo -e "\n${GREEN}✅ Payment verified!${NC}"
         return 0
+    else
+        echo -e "\n${RED}❌ Payment not found!${NC}"
+        echo -e "Please check:"
+        echo -e "1. Correct transaction ID"
+        echo -e "2. You sent EXACTLY 1000 Tsh"
+        echo -e "3. Recipient: 0622048500"
+        echo -e "\n${BLUE}Contact support if sure: https://wa.me/255675007732${NC}"
+        return 1
     fi
 }
 
-# Main menu
+# ===== ADMIN FUNCTIONS ===== #
+
+admin_login() {
+    read -sp "Enter admin password: " attempt
+    stored=$(cat "$ADMIN_DATABASE")
+    [ "$attempt" == "$stored" ] && return 0 || return 1
+}
+
+admin_panel() {
+    clear
+    echo -e "${RED}╔════════════════════════════╗"
+    echo -e "${RED}║   ${WHITE}ADMIN CONTROL PANEL   ${RED}║"
+    echo -e "${RED}╚════════════════════════════╝${NC}"
+    
+    while true; do
+        echo -e "\n${GREEN}1. View all payments"
+        echo -e "2. Add manual payment"
+        echo -e "3. Remove payment"
+        echo -e "4. Change admin password"
+        echo -e "5. Back to main menu${NC}"
+        
+        read -p "Select option: " choice
+        
+        case $choice in
+            1)
+                echo -e "\n${YELLOW}PAYMENT RECORDS:${NC}"
+                cat "$PAYMENT_DATABASE" || echo "No payments yet"
+                ;;
+            2)
+                read -p "Enter transaction ID to add: " new_id
+                echo "$new_id" >> "$PAYMENT_DATABASE"
+                echo -e "${GREEN}✅ Added successfully!${NC}"
+                ;;
+            3)
+                read -p "Enter ID to remove: " del_id
+                grep -v "$del_id" "$PAYMENT_DATABASE" > temp && mv temp "$PAYMENT_DATABASE"
+                echo -e "${GREEN}✅ Removed successfully!${NC}"
+                ;;
+            4)
+                read -sp "Enter new admin password: " new_pass
+                echo "$new_pass" > "$ADMIN_DATABASE"
+                echo -e "\n${GREEN}✅ Password changed!${NC}"
+                ;;
+            5)
+                return
+                ;;
+            *)
+                echo -e "${RED}Invalid option!${NC}"
+                ;;
+        esac
+    done
+}
+
+# ===== MAIN MENU ===== #
+
 main_menu() {
     while true; do
         clear
         show_banner
         
-        # Social media links
-        echo -e "\n${YELLOW}📱 Connect with me:${NC}"
-        echo -e "${BLUE}Telegram:${NC} https://t.me/mr_nobody"
-        echo -e "${GREEN}WhatsApp:${NC} https://wa.me/+255675007732"
-        echo -e "${PURPLE}GitHub:${NC} https://github.com/Old-hacker01"
-
-        # Main menu
-        echo -e "\n${WHITE}Select an option:${NC}"
-        echo -e "${GREEN}1. Find  WiFi passwords (Premium)"
-        echo -e "2. Scan for nearby WiFi networks (Free)"
-        echo -e "3. Show network information (Free)"
-        echo -e "4. Exit${NC}"
-
-        read -p "Enter your choice (1-4): " choice
-
-        case $choice in
+        echo -e "\n${YELLOW}📱 Contact Support:${NC}"
+        echo -e "${BLUE}WhatsApp: https://wa.me/255675007732"
+        echo -e "Telegram: @mr_nobody${NC}"
+        
+        echo -e "\n${WHITE}MAIN MENU:${NC}"
+        echo -e "${GREEN}1. Find WiFi passwords (Premium)"
+        echo -e "2. Scan nearby networks (Free)"
+        echo -e "3. Network information (Free)"
+        echo -e "4. Admin login"
+        echo -e "5. Exit${NC}"
+        
+        read -p "Choose (1-5): " option
+        
+        case $option in
             1)
                 if verify_payment; then
-                    echo -e "\n${YELLOW}Finding saved WiFi passwords...${NC}\n"
-                    if [ -f /data/misc/wifi/wpa_supplicant.conf ]; then
-                        echo -e "${GREEN}Saved WiFi networks and passwords:${NC}"
-                        cat /data/misc/wifi/wpa_supplicant.conf | grep -E 'ssid|psk'
-                    else
-                        echo -e "${RED}Error: WiFi configuration file not found or inaccessible.${NC}"
-                        echo -e "Make sure you have root permissions."
-                    fi
+                    echo -e "\n${YELLOW}Finding passwords...${NC}"
+                    # Add your password finding code here
+                    termux-wifi-showpasswords || echo "Failed - try with root"
                 fi
                 ;;
             2)
-                echo -e "\n${YELLOW}Scanning for nearby WiFi networks...${NC}\n"
-                if command -v termux-wifi-scaninfo &> /dev/null; then
-                    termux-wifi-scaninfo
-                else
-                    echo -e "${RED}Error: termux-wifi-scaninfo command not found.${NC}"
-                    echo -e "Make sure you have Termux API installed and configured."
-                fi
+                termux-wifi-scaninfo || echo "Enable Termux API first!"
                 ;;
             3)
-                echo -e "\n${YELLOW}Showing network information...${NC}\n"
-                ifconfig
-                echo -e "\n${GREEN}Current WiFi connection:${NC}"
-                termux-wifi-connectioninfo
+                ifconfig && termux-wifi-connectioninfo
                 ;;
             4)
-                echo -e "\n${PURPLE}Thank you for using WiFi Password Finder by Fazo28!${NC}"
+                if admin_login; then
+                    admin_panel
+                else
+                    echo -e "\n${RED}ACCESS DENIED!${NC}"
+                    sleep 2
+                fi
+                ;;
+            5)
+                echo -e "\n${PURPLE}Thanks for using! ${RED}F${GREEN}a${YELLOW}z${BLUE}o${PURPLE}2${CYAN}8${NC}"
                 exit 0
                 ;;
             *)
-                echo -e "\n${RED}Invalid choice. Please try again.${NC}"
+                echo -e "\n${RED}Invalid choice!${NC}"
                 ;;
         esac
-
-        echo -e "\n${BLUE}Press any key to return to the main menu...${NC}"
+        
+        echo -e "\n${BLUE}Press any key to continue...${NC}"
         read -n 1 -s
     done
 }
