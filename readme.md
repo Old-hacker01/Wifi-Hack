@@ -29,5 +29,5 @@ pkg update && pkg upgrade
 pkg install git -y
 git clone https://github.com/Old-hacker01/Wifi-Hack
 cd Wifi-Hack
-chmod +x wifi-finder.sh
-bash wifi-finder.sh
+chmod +x Wifi-finder.sh
+bash Wifi-finder.sh
