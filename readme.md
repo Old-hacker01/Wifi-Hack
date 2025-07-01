@@ -6,7 +6,7 @@
 
 A premium tool to find saved WiFi passwords after payment verification.
 
-<a href="https://ibb.co/d4js5Pzk"><img src="https://i.ibb.co/HTBLHtkG/Screenshot-20250701-021808-Termux.jpg" alt="Screenshot-20250701-021808-Termux" border="0"></a>
+<a href="https://ibb.co/TDzdQ249"><img src="https://i.ibb.co/GfgNZpWz/Screenshot-20250701-030411-Termux.jpg" alt="Screenshot-20250701-030411-Termux" border="0"></a>
 
 ## 💰 Payment System
 
