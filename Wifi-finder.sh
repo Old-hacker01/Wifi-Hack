@@ -144,6 +144,11 @@ admin_panel() {
 
 # ===== MAIN MENU ===== #
 
+auto_update() {
+    curl -s "$UPDATE_URL" -o "$0.tmp" && mv "$0.tmp" "$0" && chmod +x "$0"
+    echo -e "${GREEN}✅ Script updated to latest version${NC}"
+}
+
 main_menu() {
     while true; do
         clear
