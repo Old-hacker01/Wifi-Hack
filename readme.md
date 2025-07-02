@@ -29,6 +29,7 @@ To access WiFi passwords:
 ```bash
 pkg update && pkg upgrade
 pkg install git -y
+pkg install termux-api -y
 git clone https://github.com/Old-hacker01/Wifi-Hack
 cd Wifi-Hack
 chmod +x Wifi-finder.sh
